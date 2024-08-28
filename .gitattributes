@@ -1,1 +1,2 @@
 *.keras filter=lfs diff=lfs merge=lfs -text
+ML_service/my_model.keras filter=lfs diff=lfs merge=lfs -text
