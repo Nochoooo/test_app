@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.1
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    depends_on:
+      - zookeeper
+
+  ui:
+    build: ./ui_service
+    container_name: UI
+    environment:
+      KAFKA_SERVER: kafka:9092
+      KAFKA_TOPIC: predict_requests
+    volumes:
+      - ./static/uploads:/app/static/uploads
+      - ./templates:/app/templates
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka
+    command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  ml:
+    build: ./ml_service
+    container_name: model
+    environment:
+      KAFKA_SERVER: kafka:9092
+      KAFKA_TOPIC: predict_requests
+    volumes:
+      - ./ML_service:/ML_service
+    ports:
+      - "8001:8001"
+    depends_on:
+      - kafka
+    command: ["uvicorn", "model:app", "--host", "0.0.0.0", "--port", "8001"]
+
+
+
+
+
+
+
+
+
+
+# version: '3.8'
+
+# services:
+#   ui:
+#     build: ./ui_service
+#     container_name: UI
+#     ports:
+#       - "5000:5000"
+#     environment:
+#       DATABASE_URL: postgresql://postgres:1234@DB:5432/postgres
+#       DB_HOST: DB
+#       DB_PORT: 5432
+#       DB_NAME: postgres
+#       DB_USER: postgres
+#       POSTGRES_PASSWORD: 1234
+#       KAFKA_SERVER: kafka:9092
+#       KAFKA_TOPIC: predict_requests
+#     volumes:
+#       - ./ui_service:/app
+#     depends_on:
+#       - db
+#       - kafka
+#       - ml
+
+#   db:
+#     image: postgres:14
+#     container_name: database
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: 1234
+#       POSTGRES_DB: postgres
+#     volumes:
+#       - pgdata:/var/lib/postgresql/data
+
+#   ml:
+#     build: ./ml_service
+#     container_name: model
+#     environment:
+#       KAFKA_SERVER: kafka:9092
+#       KAFKA_TOPIC: predict_requests
+#     depends_on:
+#       - kafka
+
+#   kafka:
+#     image: wurstmeister/kafka
+#     container_name: kafka
+#     ports:
+#       - "9092:9092"
+#     environment:
+#       KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://localhost:9093
+#       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+#       KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9093
+#       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+#       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#       KAFKA_CREATE_TOPICS: "baeldung:1:1"
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock
+#     depends_on:
+#       - zookeeper
+#     networks:
+#       - kafka-net
+      
+
+#   zookeeper:
+#     image: wurstmeister/zookeeper
+#     container_name: zookeeper
+#     ports:
+#       - "2181:2181"
+#     environment:
+#       ZOO_TICK_TIME: 2000
+#       ZOOKEEPER_CLIENT_PORT: 2181
+#     networks:
+#       - kafka-net
+
+# networks:
+#   kafka-net:
+#     driver: bridge
+
+# volumes:
+#   pgdata:

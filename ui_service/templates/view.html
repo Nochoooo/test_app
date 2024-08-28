@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Просмотр записей в базе данных</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #4a90e2;
+        }
+        a {
+            text-decoration: none;
+            color: #4a90e2;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4a90e2;
+            color: #fff;
+        }
+        .selected {
+            background-color: rgba(211, 186, 141, 0.5);
+        }
+        .red-text { color: rgb(192, 87, 87); }
+        .blue-text { color: rgb(82, 82, 182); }
+        .green-text { color: rgb(141, 199, 141); }
+        button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #4a90e2;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #357ab8;
+        }
+    </style>
+    <script>
+        function onScoreDoubleClick(td) {
+            const essayId = td.parentElement.dataset.id;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '1';
+            input.max = '6';
+            input.value = td.innerText;
+            td.innerText = '';
+            td.appendChild(input);
+            input.focus();
+
+            const confirmButton = document.createElement('button');
+            confirmButton.innerText = 'Редактировать';
+            confirmButton.onclick = function() {
+                const newScore = parseFloat(input.value);
+                if (newScore >= 1 && newScore <= 6) {
+                    updateScore(essayId, newScore);
+                } else {
+                    alert('Оценка должна быть числом от 1 до 6.');
+                    input.focus();
+                }
+            };
+            td.appendChild(confirmButton);
+        }
+
+        function updateScore(essayId, score) {
+            fetch('/update_score', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: essayId, score: score }),
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const scoreCells = document.querySelectorAll('.score-cell');
+            scoreCells.forEach(cell => {
+                cell.addEventListener('dblclick', function() {
+                    onScoreDoubleClick(cell);
+                });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('table tr');
+            rows.forEach(row => {
+                row.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    updateDeleteButton();
+                });
+            });
+
+            function updateDeleteButton() {
+                const selectedRows = document.querySelectorAll('.selected');
+                const deleteButton = document.getElementById('delete-button');
+                deleteButton.style.display = selectedRows.length > 0 ? 'block' : 'none';
+            }
+        });
+
+        function deleteSelectedRows() {
+            const selectedRows = document.querySelectorAll('.selected');
+            const idsToDelete = Array.from(selectedRows).map(row => parseInt(row.dataset.id, 10));
+
+            fetch('/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ids: idsToDelete }),
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    response.text().then(text => alert(text));
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<h1>Эссе в базе данных</h1>
+<a href="/">Назад</a><br><br>
+<table>
+    <tr>
+        <th>Автор</th>
+        <th>Содержание</th>
+        <th>Оценка</th>
+    </tr>
+    {% for essay in essays %}
+    <tr data-id="{{ essay['id'] }}">
+        <td>{{ essay['author'] }}</td>
+        <td>
+            {% if essay['content'] %}
+                <a href="{{ url_for('static', filename='uploads/' + essay['content']) }}" download>
+                    Скачать файл
+                </a>
+            {% else %}
+                Файл отсутствует
+            {% endif %}
+        </td>
+        <td class="score-cell {{ 'red-text' if essay['score'] <= 2 else 'blue-text' if 3 <= essay['score'] <= 5 else 'green-text' }}">
+            {{ essay['score'] }}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<button id="delete-button" style="display:none;" onclick="deleteSelectedRows()">Удалить</button>
+</body>
+</html>

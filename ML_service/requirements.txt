@@ -1,0 +1,7 @@
+tensorflow==2.16.1
+keras==3.3.3
+keras_nlp==0.11.1
+numpy
+fastapi
+pydantic
+uvicorn

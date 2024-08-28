@@ -1,0 +1,6 @@
+psycopg2-binary==2.9.9
+loguru==0.7.2
+fastapi
+werkzeug
+uvicorn
+Jinja2

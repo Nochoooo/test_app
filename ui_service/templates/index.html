@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Приложение для оценки эссе</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e4eb;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 0.5s linear infinite;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        .view-essays-btn {
+            margin-top: 20px;
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .container {
+            margin-top: 50px;
+            max-width: 600px;
+        }
+
+        h1 {
+            margin-top: 20px;
+            margin-bottom: 30px;
+            color: #4a90e2;
+        }
+
+        .btn-primary, .btn-secondary {
+            width: 100%;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader" id="loader"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('loader').style.display = 'block';
+            setTimeout(function() {
+                document.getElementById('loader').style.display = 'none';
+            }, 1000); // Уменьшено время для загрузки
+        });
+    </script>
+    <div class="container">
+        <h1 class="text-center">Приложение для оценки эссе</h1>
+        <form method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="author">Введите имя автора эссе:</label>
+                <input type="text" class="form-control" name="author" id="author" required>
+            </div>
+            <div class="form-group">
+                <label for="essay_file">Загрузите файл эссе: .txt</label>
+                <input type="file" class="form-control-file" name="essay_file" id="essay_file" required>
+            </div>
+            <div class="text-center">
+                <input type="submit" class="btn btn-primary" value="Добавить">
+            </div>
+        </form>
+        <div class="text-center">
+            <a href="/view" class="btn btn-secondary view-essays-btn">Посмотреть все эссе</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
